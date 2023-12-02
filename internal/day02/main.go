@@ -18,10 +18,7 @@ func RunPart1(input []string) int {
 		colonSep := strings.Split(game, ":")
 		semicolonSep := strings.Split(colonSep[1], ";")
 		// parse gameID
-		gameID, parseErr := strconv.Atoi(colonSep[0][5:])
-		if parseErr != nil {
-			panic(parseErr)
-		}
+		gameID, _ := strconv.Atoi(colonSep[0][5:])
 		// loop over sets
 		for _, set := range semicolonSep {
 			set = strings.TrimSpace(set)
@@ -32,10 +29,7 @@ func RunPart1(input []string) int {
 			for _, draw := range strings.Split(set, ",") {
 				draw = strings.TrimSpace(draw)
 				drawData := strings.Split(draw, " ")
-				drawCount, drawParseErr := strconv.Atoi(drawData[0])
-				if drawParseErr != nil {
-					panic(drawParseErr)
-				}
+				drawCount, _ := strconv.Atoi(drawData[0])
 				switch drawData[1] {
 				case "red":
 					sumRed += drawCount
@@ -43,8 +37,6 @@ func RunPart1(input []string) int {
 					sumGreen += drawCount
 				case "blue":
 					sumBlue += drawCount
-				default:
-					panic("this should not happen")
 				}
 				if sumRed > maxRed || sumGreen > maxGreen || sumBlue > maxBlue {
 					gamePossible = false
@@ -78,10 +70,7 @@ func RunPart2(input []string) int {
 			for _, draw := range strings.Split(set, ",") {
 				draw = strings.TrimSpace(draw)
 				drawData := strings.Split(draw, " ")
-				drawCount, drawParseErr := strconv.Atoi(drawData[0])
-				if drawParseErr != nil {
-					panic(drawParseErr)
-				}
+				drawCount, _ := strconv.Atoi(drawData[0])
 				switch drawData[1] {
 				case "red":
 					sumRed += drawCount
@@ -89,8 +78,6 @@ func RunPart2(input []string) int {
 					sumGreen += drawCount
 				case "blue":
 					sumBlue += drawCount
-				default:
-					panic("this should not happen")
 				}
 				if sumRed > minRed {
 					minRed = sumRed
