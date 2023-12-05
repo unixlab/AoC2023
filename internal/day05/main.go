@@ -2,6 +2,7 @@
 package day05
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -78,18 +79,28 @@ func RunPart2(input []string) int {
 	seeds := parseSeeds(input)
 	mutations := parseInputMutations(input)
 	for i := 0; i < len(seeds); i += 2 {
-		for seedIter := seeds[i]; seedIter <= seeds[i]+seeds[i+1]; seedIter++ {
+		for seedIter := seeds[i]; seedIter <= seeds[i]+seeds[i+1]; seedIter += 0 {
 			seed := seedIter
+			var offsets []int
 			for _, mutation := range mutations {
 				for _, mutationData := range mutation {
 					dest := mutationData[0]
 					source := mutationData[1]
 					length := mutationData[2]
 					if seed >= source && seed <= source+length {
+						offsetFromSource := seed - source
+						offsetUntilEnd := length - offsetFromSource
+						offsets = append(offsets, offsetUntilEnd)
 						seed += dest - source
 						break
 					}
 				}
+			}
+			sort.Ints(offsets)
+			if offsets[0] > 0 {
+				seedIter += offsets[0]
+			} else {
+				seedIter++
 			}
 			if minSeed == -1 || minSeed > seed {
 				minSeed = seed
