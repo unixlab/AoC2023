@@ -74,8 +74,27 @@ func RunPart1(input []string) int {
 
 // RunPart2 is for the second star of the day
 func RunPart2(input []string) int {
-	for _, line := range input {
-		fmt.Println(line)
+	minSeed := -1
+	seeds := parseSeeds(input)
+	mutations := parseInputMutations(input)
+	for i := 0; i < len(seeds); i += 2 {
+		for seedIter := seeds[i]; seedIter <= seeds[i]+seeds[i+1]; seedIter++ {
+			seed := seedIter
+			for _, mutation := range mutations {
+				for _, mutationData := range mutation {
+					dest := mutationData[0]
+					source := mutationData[1]
+					length := mutationData[2]
+					if seed >= source && seed <= source+length {
+						seed += dest - source
+						break
+					}
+				}
+			}
+			if minSeed == -1 || minSeed > seed {
+				minSeed = seed
+			}
+		}
 	}
-	return 0
+	return minSeed
 }
