@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 lastDay=$(find cmd -name "day*.go" | grep -v XX | sort -n | tail -1 | sed 's#cmd/day##' | sed 's/.go//g')
-nextDay=$((lastDay+1))
+nextDay=$((10#$lastDay+1))
 nextDayLeadingZero=$(printf "day%02d" $nextDay)
 
 cp examples/dayXX examples/${nextDayLeadingZero}
