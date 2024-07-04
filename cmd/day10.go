@@ -12,7 +12,7 @@ import (
 // day10Cmd represents the day10 command
 var day10Cmd = &cobra.Command{
 	Use: "day10",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		example, err := cmd.Flags().GetBool("example")
 		if err != nil {
 			panic(err)
