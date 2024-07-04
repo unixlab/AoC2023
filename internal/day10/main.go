@@ -2,175 +2,126 @@
 package day10
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/RyanCarrier/dijkstra/v2"
 )
 
-// Grid is our own string array struct to build function on
-type Grid [][]string
+func calculateIndex(length, y, x int) int {
+	return y*length + x
+}
 
-// FindS returns the start point in our grid
-func (g Grid) FindS() Cord {
-	for y, yData := range g {
-		for x, xData := range yData {
-			if xData == "S" {
-				return Cord{X: x, Y: y}
+func calcPart1(grid [][]string) (int, []int) {
+	start := 0
+	graph := dijkstra.NewGraph()
+	vertices := make(map[int]bool)
+	for y := 0; y < len(grid); y += 2 {
+		xLen := len(grid[y])
+		for x := 0; x < len(grid[y]); x += 2 {
+			cidx := calculateIndex(xLen, y, x)
+			arcs := make(map[int]uint64)
+			switch grid[y][x] {
+			case ".":
+				continue
+			case "S":
+				start = cidx
+				if cidx-1 > 0 {
+					arcs[cidx-1] = 1
+				}
+				arcs[cidx+1] = 1
+				if cidx-xLen > 0 {
+					arcs[cidx-xLen] = 1
+				}
+				arcs[cidx+xLen] = 1
+			case "-":
+				if cidx-1 > 0 {
+					arcs[cidx-1] = 1
+				}
+				arcs[cidx+1] = 1
+			case "|":
+				if cidx-xLen > 0 {
+					arcs[cidx-xLen] = 1
+				}
+				arcs[cidx+xLen] = 1
+			case "F":
+				arcs[cidx+1] = 1
+				arcs[cidx+xLen] = 1
+			case "7":
+				if cidx-1 > 0 {
+					arcs[cidx-1] = 1
+				}
+				arcs[cidx+xLen] = 1
+			case "J":
+				if cidx-1 > 0 {
+					arcs[cidx-1] = 1
+				}
+				if cidx-xLen > 0 {
+					arcs[cidx-xLen] = 1
+				}
+			case "L":
+				if cidx-xLen > 0 {
+					arcs[cidx-xLen] = 1
+				}
+				arcs[cidx+1] = 1
+			}
+			vertices[cidx] = true
+			_ = graph.AddEmptyVertex(cidx)
+			for arc, distance := range arcs {
+				_, err := graph.GetVertexArcs(arc)
+				if errors.Is(err, dijkstra.ErrVertexNotFound) {
+					_ = graph.AddEmptyVertex(arc)
+				}
+				_ = graph.AddArc(cidx, arc, distance)
+				_ = graph.AddArc(arc, cidx, distance)
 			}
 		}
 	}
-	return Cord{X: -1, Y: -1}
-}
-
-func topPossible(char string) bool {
-	switch char {
-	case "S":
-		return true
-	case "|":
-		return true
-	case "J":
-		return true
-	case "L":
-		return true
-	}
-	return false
-}
-
-func rightPossible(char string) bool {
-	switch char {
-	case "S":
-		return true
-	case "-":
-		return true
-	case "L":
-		return true
-	case "F":
-		return true
-	}
-	return false
-}
-
-func bottomPossible(char string) bool {
-	switch char {
-	case "S":
-		return true
-	case "|":
-		return true
-	case "F":
-		return true
-	case "7":
-		return true
-	}
-	return false
-}
-
-func leftPossible(char string) bool {
-	switch char {
-	case "S":
-		return true
-	case "-":
-		return true
-	case "J":
-		return true
-	case "7":
-		return true
-	}
-	return false
-}
-
-// FindNextBestPath returns the next possible path
-func (g Grid) FindNextBestPath(c Cord) Cord {
-	// top
-	if c.Y-1 >= 0 && topPossible(g[c.Y][c.X]) {
-		switch g[c.Y-1][c.X] {
-		case "|":
-			return Cord{Y: c.Y - 1, X: c.X}
-		case "7":
-			return Cord{Y: c.Y - 1, X: c.X}
-		case "F":
-			return Cord{Y: c.Y - 1, X: c.X}
-		case "S":
-			return Cord{Y: c.Y - 1, X: c.X}
+	var maxDistanceVertex uint64
+	var bestPath []int
+	maxDistanceVertex = 0
+	for vertex := range vertices {
+		arcs, _ := graph.GetVertexArcs(vertex)
+		if len(arcs) == 2 {
+			path, _ := graph.Shortest(start, vertex)
+			if path.Distance > maxDistanceVertex {
+				maxDistanceVertex = path.Distance
+				bestPath = path.Path
+			}
+			for i := 1; i < len(path.Path); i++ {
+				delete(vertices, path.Path[i])
+			}
+		} else {
+			delete(vertices, vertex)
 		}
 	}
-	// right
-	if c.X+1 < len(g[0]) && rightPossible(g[c.Y][c.X]) {
-		switch g[c.Y][c.X+1] {
-		case "-":
-			return Cord{Y: c.Y, X: c.X + 1}
-		case "7":
-			return Cord{Y: c.Y, X: c.X + 1}
-		case "J":
-			return Cord{Y: c.Y, X: c.X + 1}
-		case "S":
-			return Cord{Y: c.Y, X: c.X + 1}
-		}
+	for i := 0; i < len(bestPath); i += 2 {
+		fmt.Printf("%d ", bestPath[i]/2)
 	}
-	// bottom
-	if c.Y+1 < len(g) && bottomPossible(g[c.Y][c.X]) {
-		switch g[c.Y+1][c.X] {
-		case "|":
-			return Cord{Y: c.Y + 1, X: c.X}
-		case "L":
-			return Cord{Y: c.Y + 1, X: c.X}
-		case "J":
-			return Cord{Y: c.Y + 1, X: c.X}
-		case "S":
-			return Cord{Y: c.Y + 1, X: c.X}
-		}
-	}
-	// left
-	if c.X-1 >= 0 && leftPossible(g[c.Y][c.X]) {
-		switch g[c.Y][c.X-1] {
-		case "-":
-			return Cord{Y: c.Y, X: c.X - 1}
-		case "L":
-			return Cord{Y: c.Y, X: c.X - 1}
-		case "F":
-			return Cord{Y: c.Y, X: c.X - 1}
-		case "S":
-			return Cord{Y: c.Y, X: c.X - 1}
-		}
-	}
-	return Cord{X: -1, Y: -1}
-}
-
-// Cord is our struct representing a coordinate
-type Cord struct {
-	Y int
-	X int
-}
-
-func readGrids(input []string) []Grid {
-	var grids []Grid
-	var grid Grid
-	for _, line := range input {
-		if line == "" {
-			grids = append(grids, grid)
-			grid = [][]string{}
-			continue
-		}
-		grid = append(grid, strings.Split(line, ""))
-	}
-	return grids
+	fmt.Println()
+	return int(maxDistanceVertex) / 2, bestPath
 }
 
 // RunPart1 is for the first star of the day
 func RunPart1(input []string) int {
-	stepsNeeded := 0
-	grids := readGrids(input)
-	for _, grid := range grids {
-		steps := 0
-		s := grid.FindS()
-		next := grid.FindNextBestPath(s)
-		for s != next {
-			steps++
-			prev := next
-			next = grid.FindNextBestPath(next)
-			grid[prev.Y][prev.X] = "x"
+	var grid [][]string
+	var result int
+	for _, line := range input {
+		if line == "" {
+			result, _ = calcPart1(grid)
+			grid = [][]string{}
+			continue
 		}
-		stepsNeeded = (steps + 1) / 2
+		var row []string
+		var emptyRow []string
+		for _, char := range strings.Split(line, "") {
+			row = append(row, char, "#")
+			emptyRow = append(emptyRow, "#", "#")
+		}
+		grid = append(grid, row, emptyRow)
 	}
-	return stepsNeeded
+	return result
 }
 
 // RunPart2 is for the second star of the day
